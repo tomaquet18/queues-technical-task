@@ -1,10 +1,15 @@
 """Browser Capture queue – fill in the logic."""
 
-import saq
+from saq.queue import Queue
 
-queue = saq.Queue("browser_capture")
+queue = Queue.from_url("redis://redis:6379")
 
-@queue.task
-def browser_capture(domain: str, wildcard: bool = False):
+async def browser_capture(ctx, *, domain: str, wildcard: bool = False):
     """TODO: implement Playwright screenshot capture."""
     pass
+
+
+settings = {
+    "queue": queue,
+    "functions": [browser_capture],
+}

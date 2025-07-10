@@ -1,10 +1,15 @@
 """HTTP Check queue – fill in the logic."""
 
-import saq
+from saq.queue import Queue
 
-queue = saq.Queue("http_check")
+queue = Queue.from_url("redis://redis:6379")
 
-@queue.task
-def http_check(domain: str, wildcard: bool = False):
+async def http_check(ctx, *, domain: str, wildcard: bool = False):
     """TODO: implement HTTP request using curl_cffi."""
     pass
+
+
+settings = {
+    "queue": queue,
+    "functions": [http_check],
+}

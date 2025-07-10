@@ -1,10 +1,16 @@
 """DNS Resolve queue – fill in the logic."""
 
-import saq
+from saq.queue import Queue
 
-queue = saq.Queue("resolve")
+queue = Queue.from_url("redis://redis:6379")
 
-@queue.task
-def resolve_domain(domain: str, wildcard: bool = False):
+
+async def resolve_domain(ctx, *, domain: str, wildcard: bool = False):
     """TODO: implement DNS resolution with optional wildcard fuzzing."""
     pass
+
+
+settings = {
+    "queue": queue,
+    "functions": [resolve_domain],
+}
