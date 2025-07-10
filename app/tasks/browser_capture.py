@@ -6,9 +6,10 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 from motor.motor_asyncio import AsyncIOMotorClient
 import time
 
+# Register this task to the "browser_capture" queue
 queue = Queue.from_url("redis://redis:6379", name="browser_capture")
 
-# Setup MongoDB client
+# Setup MongoDB connection
 mongo = AsyncIOMotorClient("mongodb://mongodb:27017")
 db = mongo["scanning"]
 scans_collection = db["scans"]
@@ -17,10 +18,10 @@ scans_collection = db["scans"]
 logging.getLogger().setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Directory to store screenshots
 EVIDENCE_DIR = "/evidence"
-
-# Ensure that the directory exists
 os.makedirs(EVIDENCE_DIR, exist_ok=True)
+
 
 async def browser_capture(ctx, *, domain: str, wildcard: bool = False):
     logger.info(f"Running browser_capture for {domain}")
@@ -29,13 +30,16 @@ async def browser_capture(ctx, *, domain: str, wildcard: bool = False):
     screenshot_path = os.path.join(EVIDENCE_DIR, f"{domain}.png")
 
     try:
+        # Launch Playwright with Chromium in headless mode
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True)
             context = await browser.new_context()
             page = await context.new_page()
 
+            # Load the URL and wait for the page to fully load (or timeout after 15s)
             await page.goto(url, wait_until="load", timeout=15000)
 
+            # Take a full-page screenshot and save it
             await page.screenshot(path=screenshot_path, full_page=True)
             logger.info(f"Screenshot saved: {screenshot_path}")
 
@@ -44,6 +48,7 @@ async def browser_capture(ctx, *, domain: str, wildcard: bool = False):
             title = await page.title()
             scanned_at = int(time.time())
 
+            # Insert scan result into MongoDB
             logger.info(f"Inserting scan result into Mongo for {domain}")
             await scans_collection.insert_one({
                 "hostname": domain,
