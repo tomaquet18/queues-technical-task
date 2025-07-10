@@ -21,8 +21,11 @@ class ScanRequest(BaseModel):
 async def scan_domain(req: ScanRequest):
     try:
         # Enqueue the domain resolution job with the given parameters
-        await queue.enqueue("resolve_domain", domain=req.domain, wildcard=req.wildcard)
-        return {"status": "queued"}
+        job = await queue.enqueue("resolve_domain", domain=req.domain, wildcard=req.wildcard)
+        return {
+            "status": "queued",
+            "scan_id": job.key
+        }
     except Exception as e:
         # Return HTTP 500 if enqueueing fails
         raise HTTPException(status_code=500, detail=str(e))
