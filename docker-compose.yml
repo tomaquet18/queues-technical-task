@@ -20,7 +20,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    command: saq app.tasks.resolve:settings --workers 1
+    command: saq app.tasks.resolve.settings --workers 1
     volumes:
       - .:/app
     depends_on:
@@ -33,7 +33,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    command: saq app.tasks.http_check:settings --workers 1
+    command: saq app.tasks.http_check.settings --workers 1
     volumes:
       - .:/app
     depends_on:
@@ -46,7 +46,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    command: saq app.tasks.browser_capture:settings --workers 1
+    command: saq app.tasks.browser_capture.settings --workers 1
     shm_size: 2gb
     volumes:
       - .:/app
