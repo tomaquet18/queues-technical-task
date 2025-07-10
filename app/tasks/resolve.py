@@ -8,6 +8,7 @@ from saq.queue import Queue
 from app.tasks import resolve
 
 queue = Queue.from_url("redis://redis:6379", name="resolve")
+http_check = Queue.from_url("redis://redis:6379", name="http_check")
 
 # Logger setup
 logging.getLogger().setLevel(logging.INFO)
@@ -29,14 +30,14 @@ async def resolve_domain(ctx, *, domain: str, wildcard: bool = False):
     try:
         if await resolves(domain):
             logger.info(f"Resolved root domain: {domain}")
-            await Queue.from_url("redis://redis:6379", name="http_check").enqueue("http_check", domain=domain)
+            await http_check.enqueue("http_check", domain=domain)
 
             if wildcard:
                 for prefix in WORDLIST:
                     sub = f"{prefix}.{domain}"
                     if await resolves(sub):
                         logger.info(f"Resolved subdomain: {sub}")
-                        await Queue.from_url("redis://redis:6379", name="http_check").enqueue("http_check", domain=sub)
+                        await http_check.enqueue("http_check", domain=sub)
                     else:
                         logger.info(f"Subdomain did not resolve: {sub}")
             else:
