@@ -1,0 +1,74 @@
+version: '3.9'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - mongodb
+    networks:
+      - scanner_network
+
+  resolve_queue:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: saq app.tasks.resolve:settings --workers 1
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - mongodb
+    networks:
+      - scanner_network
+
+  http_check_queue:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: saq app.tasks.http_check:settings --workers 1
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - mongodb
+    networks:
+      - scanner_network
+
+  browser_capture_queue:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: saq app.tasks.browser_capture:settings --workers 1
+    shm_size: 2gb
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - mongodb
+    networks:
+      - scanner_network
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    networks:
+      - scanner_network
+
+  mongodb:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+    networks:
+      - scanner_network
+
+networks:
+  scanner_network:
