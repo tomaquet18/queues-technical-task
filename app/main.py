@@ -6,7 +6,7 @@ from saq.queue import Queue
 from app.tasks import resolve  # noqa: F401 – imported for side‑effects
 
 app = FastAPI(title="Domain Scanner")
-queue = Queue.from_url("redis://redis:6379")
+queue = Queue.from_url("redis://redis:6379", name="resolve")
 
 class ScanRequest(BaseModel):
     domain: str
@@ -15,7 +15,7 @@ class ScanRequest(BaseModel):
 @app.post("/scan")
 async def scan_domain(req: ScanRequest):
     try:
-        await queue.enqueue("resolve", domain=req.domain, wildcard=req.wildcard)
+        await queue.enqueue("resolve_domain", domain=req.domain, wildcard=req.wildcard)
         return {"status": "queued"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
