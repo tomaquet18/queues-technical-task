@@ -1,6 +1,6 @@
 fastapi
 uvicorn[standard]
-saq==1.1.0
+saq[redis]==0.25.1
 motor
 curl_cffi
 playwright
